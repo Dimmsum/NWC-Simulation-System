@@ -15,6 +15,14 @@ Shanessa Wallace    2404874
  * School of Computing and Information Technology (SCIT)
  * Programming II - Group Project
  * Date: April 6, 2025
+ * 
+ * Description:
+ * This program simulates a console-based utility platform for the National Water Commission (NWC).
+ * It manages domestic customers using the Metric Metered system with two main user types:
+ * Agent and Customer. The program handles account management, billing, payments, and reporting.
+ * 
+ * Authors:
+ * [Your Group Member Names Go Here]
  */
 
  #include <stdio.h>
@@ -30,13 +38,13 @@ Shanessa Wallace    2404874
  #define MAX_EMAIL_LENGTH 100
  #define MAX_PASSWORD_LENGTH 50
  #define MAX_BILLING_CYCLES 12
- #define FILE_CUSTOMERS "customers.dat"
- #define FILE_PREMISES "premises.dat"
- #define FILE_BILLS "bills.dat"
- #define FILE_PAYMENTS "payments.dat"
- #define FILE_USERS "users.dat"
- #define FILE_PAYMENT_CARDS "payment_cards.dat"
- #define FILE_LOGS "system_logs.dat"
+ #define FILE_CUSTOMERS "customers.txt"
+ #define FILE_PREMISES "premises.txt"
+ #define FILE_BILLS "bills.txt"
+ #define FILE_PAYMENTS "payments.txt"
+ #define FILE_USERS "users.txt"
+ #define FILE_PAYMENT_CARDS "payment_cards.txt"
+ #define FILE_LOGS "system_logs.txt"
  
  // Enumeration for user types
  typedef enum {
@@ -62,87 +70,87 @@ Shanessa Wallace    2404874
  
  // Structure for user accounts
  typedef struct {
-     int id;
-     char email[MAX_EMAIL_LENGTH];
-     char password[MAX_PASSWORD_LENGTH];
-     UserType type;
-     bool is_active;
+     int id;                             // Unique identifier for the user
+     char email[MAX_EMAIL_LENGTH];       // Email address (used for login)
+     char password[MAX_PASSWORD_LENGTH]; // Password (stored as plaintext for simplicity)
+     UserType type;                      // Type of user (AGENT or CUSTOMER)
+     bool is_active;                     // Flag to indicate if account is active
  } User;
  
  // Structure for customers
  typedef struct {
-     char customer_number[8];  // 7-digit plus null terminator
-     char first_name[MAX_NAME_LENGTH];
-     char last_name[MAX_NAME_LENGTH];
-     int user_id;
-     IncomeClass income_class;
-     bool is_active;
-     bool has_payment_card;
+     char customer_number[8];                 // 7-digit unique customer number
+     char first_name[MAX_NAME_LENGTH];        // Customer's first name
+     char last_name[MAX_NAME_LENGTH];         // Customer's last name
+     int user_id;                             // Associated user account ID
+     IncomeClass income_class;                // Income class determining usage limits
+     bool is_active;                          // Flag to indicate if customer is active
+     bool has_payment_card;                   // Flag to indicate if payment card is registered
  } Customer;
  
  // Structure for premises
  typedef struct {
-     char premises_number[8];  // 7-digit plus null terminator
-     char customer_number[8];
-     MeterSize meter_size;
-     int initial_reading;
-     int previous_reading;
-     int current_reading;
-     bool is_active;
+     char premises_number[8];                 // 7-digit unique premises number
+     char customer_number[8];                 // Associated customer number
+     MeterSize meter_size;                    // Size of installed meter
+     int initial_reading;                     // Initial meter reading
+     int previous_reading;                    // Previous meter reading
+     int current_reading;                     // Current meter reading
+     bool is_active;                          // Flag to indicate if premises is active
  } Premises;
  
  // Structure for bills
  typedef struct {
-     char bill_id[20];
-     char customer_number[8];
-     char premises_number[8];
-     int month_number;
-     int year;
-     int previous_reading;
-     int current_reading;
-     int consumption;
-     double water_charge;
-     double sewerage_charge;
-     double service_charge;
-     double pam;
-     double x_factor;
-     double k_factor;
-     double total_current_charges;
-     double early_payment_amount;
-     double overdue_amount;
-     double total_amount_due;
-     double amount_paid;
-     bool is_early_payment_eligible;
-     bool is_paid;
-     char bill_date[11];
-     char due_date[11];
+     char bill_id[20];                        // Unique bill identifier
+     char customer_number[8];                 // Associated customer number
+     char premises_number[8];                 // Associated premises number
+     int month_number;                        // Billing month (1-12)
+     int year;                                // Billing year
+     int previous_reading;                    // Previous meter reading
+     int current_reading;                     // Current meter reading
+     int consumption;                         // Water consumption in liters
+     double water_charge;                     // Water charge based on consumption
+     double sewerage_charge;                  // Sewerage charge based on consumption
+     double service_charge;                   // Service charge based on meter size
+     double pam;                              // Price Adjustment Mechanism
+     double x_factor;                         // X-Factor
+     double k_factor;                         // K-Factor
+     double total_current_charges;            // Total current charges
+     double early_payment_amount;             // Early payment discount
+     double overdue_amount;                   // Overdue amount from previous bills
+     double total_amount_due;                 // Total amount due
+     double amount_paid;                      // Amount paid so far
+     bool is_early_payment_eligible;          // Flag for early payment eligibility
+     bool is_paid;                            // Flag to indicate if bill is fully paid
+     char bill_date[11];                      // Date bill was generated
+     char due_date[11];                       // Due date for payment
  } Bill;
  
  // Structure for payments
  typedef struct {
-     char payment_id[20];
-     char bill_id[20];
-     char customer_number[8];
-     char premises_number[8];
-     double amount;
-     char payment_date[11];
+     char payment_id[20];                     // Unique payment identifier
+     char bill_id[20];                        // Associated bill ID
+     char customer_number[8];                 // Associated customer number
+     char premises_number[8];                 // Associated premises number
+     double amount;                           // Payment amount
+     char payment_date[11];                   // Date of payment
  } Payment;
  
  // Structure for payment cards
  typedef struct {
-     char customer_number[8];
-     char card_identifier[20];
-     bool is_active;
+     char customer_number[8];                 // Associated customer number
+     char card_identifier[20];                // Card identifier (e.g., last 4 digits)
+     bool is_active;                          // Flag to indicate if card is active
  } PaymentCard;
  
  // Structure for system logs
  typedef struct {
-     char log_id[20];
-     char customer_number[8];
-     int payments_count;
-     double last_payment_amount;
-     int meters_surrendered;
-     char log_date[11];
+     char log_id[20];                         // Unique log identifier
+     char customer_number[8];                 // Associated customer number
+     int payments_count;                      // Number of payments made
+     double last_payment_amount;              // Amount of last payment
+     int meters_surrendered;                  // Number of meters surrendered
+     char log_date[11];                       // Log date
  } SystemLog;
  
  // Global variables
@@ -154,49 +162,61 @@ Shanessa Wallace    2404874
  int premises_count = 0;
  
  // Function prototypes
- void initializeSystem();
- void mainMenu();
- void registerAccount();
- bool signIn();
- void agentInterface();
- void customerInterface();
- void addCustomer();
- void editCustomer();
- void viewCustomer();
- void deleteCustomer();
- void generateBill();
- void viewReports();
- void registerPaymentCard();
- void viewBill();
- void payBill();
- void surrenderMeter();
- void loadData();
- void saveData();
- void generateID(char *id, const char *prefix);
- void getCurrentDate(char *date);
- int generateRandomNumber(int min, int max);
- float calculateWaterCharge(int consumption);
- float calculateSewerageCharge(int consumption);
- float calculateServiceCharge(MeterSize meter_size);
- bool isCustomerNumberExists(const char *customer_number);
- bool isPremisesNumberExists(const char *premises_number);
- bool isEmailExists(const char *email);
- void maskPassword(char *password);
- int getDailyUsageLimit(IncomeClass income_class);
- void logActivity(const char *customer_number, double payment_amount, bool surrender_meter);
- void displayCustomerDetails(const char *customer_number);
- void clearScreen();
- void pauseScreen();
+ void initializeSystem();                                     // Initialize the system by loading data
+ void mainMenu();                                             // Display the main menu
+ void registerAccount();                                      // Register a new customer account
+ bool signIn();                                               // Authenticate user and determine type
+ void agentInterface();                                       // Display agent interface
+ void customerInterface();                                    // Display customer interface
+ void addCustomer();                                          // Add a new customer (Agent)
+ void editCustomer();                                         // Edit existing customer data (Agent)
+ void viewCustomer();                                         // View customer details (Agent)
+ void deleteCustomer();                                       // Archive customer (Agent)
+ void generateBill();                                         // Generate bill for a customer (Agent)
+ void viewReports();                                          // View different reports (Agent)
+ void registerPaymentCard();                                  // Register payment card (Customer)
+ void viewBill();                                             // View latest bill (Customer)
+ void payBill();                                              // Pay bill (Customer)
+ void surrenderMeter();                                       // Surrender meter (Customer)
+ void loadData();                                             // Load data from files
+ void saveData();                                             // Save data to files
+ void generateID(char *id, const char *prefix);               // Generate unique ID with prefix
+ void getCurrentDate(char *date);                             // Get current date in YYYY-MM-DD format
+ int generateRandomNumber(int min, int max);                  // Generate random number in range
+ float calculateWaterCharge(int consumption);                 // Calculate water charge based on consumption
+ float calculateSewerageCharge(int consumption);              // Calculate sewerage charge based on consumption
+ float calculateServiceCharge(MeterSize meter_size);          // Calculate service charge based on meter size
+ bool isCustomerNumberExists(const char *customer_number);    // Check if customer number exists
+ bool isPremisesNumberExists(const char *premises_number);    // Check if premises number exists
+ bool isEmailExists(const char *email);                       // Check if email exists
+ void maskPassword(char *password);                           // Mask password input with asterisks
+ int getDailyUsageLimit(IncomeClass income_class);            // Get daily usage limit based on income class
+ void logActivity(const char *customer_number, double payment_amount, bool surrender_meter); // Log system activity
+ void displayCustomerDetails(const char *customer_number);    // Display detailed customer information
+ void clearScreen();                                          // Clear console screen
+ void pauseScreen();                                          // Pause and wait for user input
  
+ /**
+  * Main function - Entry point for the program
+  *
+  * Initializes the random number generator, loads data, displays the main menu
+  * and saves data before exiting.
+  *
+  * @return int - Exit code (0 for normal termination)
+  */
  int main() {
-     srand(time(NULL));
+     srand(time(NULL)); // Seed random number generator
      initializeSystem();
      mainMenu();
      saveData();
      return 0;
  }
  
- // Initialize the system by loading data
+ /**
+  * Initialize the system by loading data
+  * 
+  * Loads all necessary data from files and displays a welcome message
+  */
  void initializeSystem() {
      loadData();
      printf("\nWelcome to the National Water Commission (NWC) Utility Platform\n");
@@ -845,7 +865,20 @@ Shanessa Wallace    2404874
      pauseScreen();
  }
  
- // Generate bill for a customer (Agent function)
+ /**
+  * Generate bill for a customer (Agent function)
+  * 
+  * Creates a new bill for a specified customer and premises.
+  * The bill includes:
+  * - Randomized water usage based on income class
+  * - Tiered charges for water and sewerage
+  * - Service charges based on meter size
+  * - Additional fees (PAM, X-Factor, K-Factor)
+  * - Random early payment eligibility
+  * 
+  * Prevents bill generation if customer has 2+ unpaid bills.
+  * Updates meter readings and persists bill data.
+  */
  void generateBill() {
      clearScreen();
      char customer_number[8];
@@ -1193,7 +1226,15 @@ Shanessa Wallace    2404874
      pauseScreen();
  }
  
- // Register a payment card (Customer function)
+ /**
+  * Register a payment card (Customer function)
+  * 
+  * Allows customers to register a payment card for bill payments.
+  * A customer must register a card before making any bill payments.
+  * 
+  * Stores basic card identifier (not full card details for security).
+  * Updates customer record to indicate card registration.
+  */
  void registerPaymentCard() {
      clearScreen();
      PaymentCard card;
@@ -1346,7 +1387,17 @@ Shanessa Wallace    2404874
      pauseScreen();
  }
  
- // Pay bill (Customer function)
+ /**
+  * Pay bill (Customer function)
+  * 
+  * Allows customers to make payments toward their bills.
+  * Supports both partial and full payments.
+  * Handles overpayments as credits toward future bills.
+  * 
+  * Requires a registered payment card.
+  * Generates a receipt with payment details.
+  * Updates bill status and logs payment activity.
+  */
  void payBill() {
      clearScreen();
      bool bill_found = false;
@@ -1439,7 +1490,7 @@ Shanessa Wallace    2404874
          
          // Update bill in file
          FILE *bill_file = fopen(FILE_BILLS, "rb");
-         FILE *temp_file = fopen("temp_bills.dat", "wb");
+         FILE *temp_file = fopen("temp_bills.txt", "wb");
          
          if (bill_file != NULL && temp_file != NULL) {
              Bill bill;
@@ -1454,7 +1505,7 @@ Shanessa Wallace    2404874
              fclose(temp_file);
              
              remove(FILE_BILLS);
-             rename("temp_bills.dat", FILE_BILLS);
+             rename("temp_bills.txt", FILE_BILLS);
              
              // Log the payment
              logActivity(current_customer.customer_number, payment_amount, false);
@@ -1586,34 +1637,53 @@ Shanessa Wallace    2404874
          fclose(file);
      }
      
-     // Create default agent account if it doesn't exist
+     // Create designated agent accounts if they don't exist
+     bool admin_exists = false;
      bool agent_exists = false;
      file = fopen(FILE_USERS, "rb");
      if (file != NULL) {
          User user;
          while (fread(&user, sizeof(User), 1, file) == 1) {
-             if (user.type == AGENT) {
+             if (user.type == AGENT && strcmp(user.email, "admin@nwc.com") == 0) {
+                 admin_exists = true;
+             }
+             if (user.type == AGENT && strcmp(user.email, "agent@nwc.com") == 0) {
                  agent_exists = true;
-                 break;
              }
          }
          fclose(file);
      }
      
-     if (!agent_exists) {
-         User agent;
-         agent.id = 1;
-         strcpy(agent.email, "agent@nwc.com");
-         strcpy(agent.password, "password");
-         agent.type = AGENT;
-         agent.is_active = true;
-         
-         file = fopen(FILE_USERS, "ab");
-         if (file != NULL) {
-             fwrite(&agent, sizeof(User), 1, file);
-             fclose(file);
+     file = fopen(FILE_USERS, "ab");
+     if (file != NULL) {
+         // Create admin account
+         if (!admin_exists) {
+             User admin;
+             admin.id = 1;
+             strcpy(admin.email, "admin@nwc.com");
+             strcpy(admin.password, "admin123");
+             admin.type = AGENT;
+             admin.is_active = true;
+             fwrite(&admin, sizeof(User), 1, file);
          }
+         
+         // Create agent account
+         if (!agent_exists) {
+             User agent;
+             agent.id = 2;
+             strcpy(agent.email, "agent@nwc.com");
+             strcpy(agent.password, "agent123");
+             agent.type = AGENT;
+             agent.is_active = true;
+             fwrite(&agent, sizeof(User), 1, file);
+         }
+         
+         fclose(file);
      }
+     
+     printf("Agent Login Credentials:\n");
+     printf("Email: admin@nwc.com\nPassword: admin123\n\n");
+     printf("Email: agent@nwc.com\nPassword: agent123\n\n");
  }
  
  // Save data to files
@@ -1661,7 +1731,18 @@ Shanessa Wallace    2404874
      return min + rand() % (max - min + 1);
  }
  
- // Calculate water charge based on consumption
+ /**
+  * Calculate water charge based on consumption
+  * 
+  * Applies tiered rating system based on water consumption brackets:
+  * - 0-14,000 litres: $149.55 per cubic meter
+  * - 14,001-27,000 litres: $266.15 per cubic meter
+  * - 27,001-41,000 litres: $290.10 per cubic meter
+  * - Over 41,000 litres: $494.87 per cubic meter
+  * 
+  * @param consumption - Water consumption in litres
+  * @return float - Calculated water charge
+  */
  float calculateWaterCharge(int consumption) {
      float charge = 0.0;
      
@@ -1684,7 +1765,18 @@ Shanessa Wallace    2404874
      return charge;
  }
  
- // Calculate sewerage charge based on consumption
+ /**
+  * Calculate sewerage charge based on consumption
+  * 
+  * Applies tiered rating system based on consumption brackets:
+  * - 0-14,000 litres: $172.72 per cubic meter
+  * - 14,001-27,000 litres: $307.42 per cubic meter
+  * - 27,001-41,000 litres: $335.06 per cubic meter
+  * - Over 41,000 litres: $571.56 per cubic meter
+  * 
+  * @param consumption - Water consumption in litres
+  * @return float - Calculated sewerage charge
+  */
  float calculateSewerageCharge(int consumption) {
      float charge = 0.0;
      
@@ -1779,7 +1871,15 @@ Shanessa Wallace    2404874
      printf("\n");
  }
  
- // Get daily usage limit based on income class
+ /**
+  * Get daily usage limit based on income class
+  * 
+  * Returns the maximum daily water usage limit in litres according to
+  * the customer's assigned income class.
+  * 
+  * @param income_class - Customer's income class
+  * @return int - Daily usage limit in litres
+  */
  int getDailyUsageLimit(IncomeClass income_class) {
      switch (income_class) {
          case LOW:
@@ -1797,7 +1897,16 @@ Shanessa Wallace    2404874
      }
  }
  
- // Log system activity
+ /**
+  * Log system activity
+  * 
+  * Records customer activities including payments and meter surrenders.
+  * Updates existing logs or creates new log entries as needed.
+  * 
+  * @param customer_number - Customer number
+  * @param payment_amount - Amount paid (0 if not a payment activity)
+  * @param surrender_meter - True if this is a meter surrender activity
+  */
  void logActivity(const char *customer_number, double payment_amount, bool surrender_meter) {
      SystemLog log;
      generateID(log.log_id, "LOG");
