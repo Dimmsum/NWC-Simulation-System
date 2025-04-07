@@ -1,15 +1,4 @@
 /*
-Group Members:
-Name                ID
----------------------------
-Dimetri Lee         2404379
-Twayne Campbell     2405399
-Sanjay Stewart      2408878
-Shanessa Wallace    2404874
-*/
-
-
-/*
  * National Water Commission (NWC) Utility Platform
  * University of Technology, Jamaica
  * School of Computing and Information Technology (SCIT)
@@ -308,8 +297,8 @@ Shanessa Wallace    2404874
          fwrite(&new_user, sizeof(User), 1, file);
          fclose(file);
          
-         // Create new customer
-         sprintf(new_customer.customer_number, "%07d", rand() % 9000000 + 1000000);
+         // Create new customer with random 7-digit customer number
+         sprintf(new_customer.customer_number, "%07d", 1000000 + rand() % 9000000);
          strcpy(new_customer.first_name, first_name);
          strcpy(new_customer.last_name, last_name);
          new_customer.user_id = new_user.id;
@@ -340,24 +329,24 @@ Shanessa Wallace    2404874
  // Sign in to the system
  bool signIn() {
      clearScreen();
-     char email[MAX_EMAIL_LENGTH];
-     char password[MAX_PASSWORD_LENGTH];
+     char email_input[MAX_EMAIL_LENGTH];
+     char password_input[MAX_PASSWORD_LENGTH];
      bool authenticated = false;
      
      printf("\n=== Sign In ===\n");
      printf("Enter email: ");
-     fgets(email, MAX_EMAIL_LENGTH, stdin);
-     email[strcspn(email, "\n")] = '\0';
+     fgets(email_input, MAX_EMAIL_LENGTH, stdin);
+     email_input[strcspn(email_input, "\n")] = '\0';
      
      printf("Enter password: ");
-     maskPassword(password);
+     maskPassword(password_input);
      
      // Check credentials
      FILE *file = fopen(FILE_USERS, "rb");
      if (file != NULL) {
          User user;
          while (fread(&user, sizeof(User), 1, file) == 1) {
-             if (strcmp(user.email, email) == 0 && strcmp(user.password, password) == 0 && user.is_active) {
+             if (strcmp(user.email, email_input) == 0 && strcmp(user.password, password_input) == 0 && user.is_active) {
                  authenticated = true;
                  current_user = user;
                  
@@ -507,15 +496,19 @@ Shanessa Wallace    2404874
      
      // Customer Number
      printf("Enter Customer Number (7 digits): ");
-     fgets(customer_number, 8, stdin);
-     customer_number[strcspn(customer_number, "\n")] = '\0';
+     char customer_input[100];
+     fgets(customer_input, sizeof(customer_input), stdin);
+     customer_input[strcspn(customer_input, "\n")] = '\0';
      
      // Validate customer number
-     if (strlen(customer_number) != 7) {
+     if (strlen(customer_input) != 7) {
          printf("Error: Customer number must be 7 digits.\n");
          pauseScreen();
          return;
      }
+     
+     // Copy validated input to customer_number
+     strcpy(customer_number, customer_input);
      
      for (int i = 0; i < 7; i++) {
          if (!isdigit(customer_number[i])) {
@@ -533,16 +526,20 @@ Shanessa Wallace    2404874
      
      // Premises Number
      printf("Enter Premises Number (7 digits): ");
-     fgets(premises_number, 8, stdin);
-     premises_number[strcspn(premises_number, "\n")] = '\0';
+     char premises_input[100];
+     fgets(premises_input, sizeof(premises_input), stdin);
+     premises_input[strcspn(premises_input, "\n")] = '\0';
      
-     // Validate premises number
-     if (strlen(premises_number) != 7) {
+     if (strlen(premises_input) != 7) {
          printf("Error: Premises number must be 7 digits.\n");
          pauseScreen();
          return;
      }
      
+     // Copy validated input to premises_number
+     strcpy(premises_number, premises_input);
+     
+     // Validate premises number
      for (int i = 0; i < 7; i++) {
          if (!isdigit(premises_number[i])) {
              printf("Error: Premises number must contain only digits.\n");
@@ -654,15 +651,36 @@ Shanessa Wallace    2404874
  // Edit an existing customer (Agent function)
  void editCustomer() {
      clearScreen();
-     char customer_number[8];
-     int choice;
-     bool found = false;
-     int index = -1;
+     char customer_input[100];
      
      printf("\n=== Edit Customer ===\n");
      printf("Enter Customer Number to edit: ");
-     fgets(customer_number, 8, stdin);
-     customer_number[strcspn(customer_number, "\n")] = '\0';
+     fgets(customer_input, sizeof(customer_input), stdin);
+     customer_input[strcspn(customer_input, "\n")] = '\0';
+     
+     // Validate length
+     if (strlen(customer_input) != 7) {
+         printf("Error: Customer number must be 7 digits.\n");
+         pauseScreen();
+         return;
+     }
+     
+     // Copy to customer_number
+     char customer_number[8];
+     strcpy(customer_number, customer_input);
+     
+     // Validate digits
+     for (int i = 0; i < 7; i++) {
+         if (!isdigit(customer_number[i])) {
+             printf("Error: Customer number must contain only digits.\n");
+             pauseScreen();
+             return;
+         }
+     }
+     
+     int choice;
+     bool found = false;
+     int index = -1;
      
      // Find customer in array
      for (int i = 0; i < customer_count; i++) {
@@ -791,12 +809,32 @@ Shanessa Wallace    2404874
  // View customer details (Agent function)
  void viewCustomer() {
      clearScreen();
-     char customer_number[8];
+     char customer_input[100];
      
      printf("\n=== View Customer ===\n");
      printf("Enter Customer Number: ");
-     fgets(customer_number, 8, stdin);
-     customer_number[strcspn(customer_number, "\n")] = '\0';
+     fgets(customer_input, sizeof(customer_input), stdin);
+     customer_input[strcspn(customer_input, "\n")] = '\0';
+     
+     // Validate length
+     if (strlen(customer_input) != 7) {
+         printf("Error: Customer number must be 7 digits.\n");
+         pauseScreen();
+         return;
+     }
+     
+     // Copy to customer_number
+     char customer_number[8];
+     strcpy(customer_number, customer_input);
+     
+     // Validate digits
+     for (int i = 0; i < 7; i++) {
+         if (!isdigit(customer_number[i])) {
+             printf("Error: Customer number must contain only digits.\n");
+             pauseScreen();
+             return;
+         }
+     }
      
      displayCustomerDetails(customer_number);
      pauseScreen();
@@ -879,217 +917,249 @@ Shanessa Wallace    2404874
   * Prevents bill generation if customer has 2+ unpaid bills.
   * Updates meter readings and persists bill data.
   */
- void generateBill() {
-     clearScreen();
-     char customer_number[8];
-     char premises_number[8];
-     bool customer_found = false;
-     bool premises_found = false;
-     int customer_index = -1;
-     int premises_index = -1;
-     int unpaid_bills_count = 0;
-     
-     printf("\n=== Generate Bill ===\n");
-     printf("Enter Customer Number: ");
-     fgets(customer_number, 8, stdin);
-     customer_number[strcspn(customer_number, "\n")] = '\0';
-     
-     // Find customer in array
-     for (int i = 0; i < customer_count; i++) {
-         if (strcmp(customers[i].customer_number, customer_number) == 0 && customers[i].is_active) {
-             customer_found = true;
-             customer_index = i;
-             break;
-         }
-     }
-     
-     if (!customer_found) {
-         printf("Customer not found or is archived.\n");
-         pauseScreen();
-         return;
-     }
-     
-     printf("Enter Premises Number: ");
-     fgets(premises_number, 8, stdin);
-     premises_number[strcspn(premises_number, "\n")] = '\0';
-     
-     // Find premises in array
-     for (int i = 0; i < premises_count; i++) {
-         if (strcmp(premises[i].premises_number, premises_number) == 0 && 
-             strcmp(premises[i].customer_number, customer_number) == 0 && 
-             premises[i].is_active) {
-             premises_found = true;
-             premises_index = i;
-             break;
-         }
-     }
-     
-     if (!premises_found) {
-         printf("Premises not found, not associated with this customer, or is inactive.\n");
-         pauseScreen();
-         return;
-     }
-     
-     // Check for two consecutive unpaid bills
-     FILE *file = fopen(FILE_BILLS, "rb");
-     if (file != NULL) {
-         Bill bill;
-         while (fread(&bill, sizeof(Bill), 1, file) == 1) {
-             if (strcmp(bill.customer_number, customer_number) == 0 && 
-                 strcmp(bill.premises_number, premises_number) == 0 && 
-                 !bill.is_paid) {
-                 unpaid_bills_count++;
-             }
-         }
-         fclose(file);
-     }
-     
-     if (unpaid_bills_count >= 2) {
-         printf("Cannot generate bill: Customer has two or more unpaid bills.\n");
-         pauseScreen();
-         return;
-     }
-     
-     // Generate bill
-     Bill new_bill;
-     int total_consumption = 0;
-     int daily_usage_limit = getDailyUsageLimit(customers[customer_index].income_class);
-     
-     // Generate 30 days of consumption
-     for (int i = 0; i < 30; i++) {
-         total_consumption += generateRandomNumber(0, daily_usage_limit);
-     }
-     
-     // Update premises readings
-     premises[premises_index].previous_reading = premises[premises_index].current_reading;
-     premises[premises_index].current_reading = premises[premises_index].previous_reading + total_consumption;
-     
-     // Generate bill ID
-     generateID(new_bill.bill_id, "BILL");
-     
-     // Set bill details
-     strcpy(new_bill.customer_number, customer_number);
-     strcpy(new_bill.premises_number, premises_number);
-     
-     // Get current date for bill date
-     getCurrentDate(new_bill.bill_date);
-     
-     // Calculate due date (30 days from bill date)
-     // For simplicity, we'll just add "30 days" to the bill date
-     strcpy(new_bill.due_date, new_bill.bill_date);
-     new_bill.due_date[0] = new_bill.due_date[0] + 1; // Simple increment to represent 30 days later
-     
-     // Set month number (1-12)
-     FILE *bill_file = fopen(FILE_BILLS, "rb");
-     if (bill_file != NULL) {
-         Bill last_bill;
-         int last_month = 0;
-         
-         while (fread(&last_bill, sizeof(Bill), 1, bill_file) == 1) {
-             if (strcmp(last_bill.customer_number, customer_number) == 0 && 
-                 strcmp(last_bill.premises_number, premises_number) == 0) {
-                 if (last_bill.month_number > last_month) {
-                     last_month = last_bill.month_number;
-                 }
-             }
-         }
-         fclose(bill_file);
-         
-         if (last_month == 12) {
-             new_bill.month_number = 1;
-         } else {
-             new_bill.month_number = last_month + 1;
-         }
-     } else {
-         new_bill.month_number = 1; // First bill
-     }
-     
-     new_bill.year = 2025; // Current year
-     new_bill.previous_reading = premises[premises_index].previous_reading;
-     new_bill.current_reading = premises[premises_index].current_reading;
-     new_bill.consumption = total_consumption;
-     
-     // Calculate charges
-     new_bill.water_charge = calculateWaterCharge(total_consumption);
-     new_bill.sewerage_charge = calculateSewerageCharge(total_consumption);
-     new_bill.service_charge = calculateServiceCharge(premises[premises_index].meter_size);
-     
-     // PAM (Price Adjustment Mechanism): 1.21% of (Water + Sewerage + Service)
-     new_bill.pam = 0.0121 * (new_bill.water_charge + new_bill.sewerage_charge + new_bill.service_charge);
-     
-     // X-Factor: -5% of (Water + Sewerage + Service)
-     new_bill.x_factor = -0.05 * (new_bill.water_charge + new_bill.sewerage_charge + new_bill.service_charge);
-     
-     // K-Factor: 20% of (Water + Sewerage + Service + PAM) - X-Factor
-     new_bill.k_factor = 0.2 * (new_bill.water_charge + new_bill.sewerage_charge + new_bill.service_charge + new_bill.pam) - new_bill.x_factor;
-     
-     // Total Current Charges
-     new_bill.total_current_charges = new_bill.water_charge + new_bill.sewerage_charge + new_bill.service_charge - new_bill.x_factor + new_bill.k_factor;
-     
-     // Determine early payment eligibility (random)
-     new_bill.is_early_payment_eligible = (generateRandomNumber(0, 1) == 1);
-     
-     if (new_bill.is_early_payment_eligible) {
-         // Early payment discount (random between $50 and $250)
-         new_bill.early_payment_amount = generateRandomNumber(50, 250);
-     } else {
-         new_bill.early_payment_amount = 0.0;
-     }
-     
-     // Check for overdue amount
-     new_bill.overdue_amount = 0.0;
-     bill_file = fopen(FILE_BILLS, "rb");
-     if (bill_file != NULL) {
-         Bill last_bill;
-         
-         while (fread(&last_bill, sizeof(Bill), 1, bill_file) == 1) {
-             if (strcmp(last_bill.customer_number, customer_number) == 0 && 
-                 strcmp(last_bill.premises_number, premises_number) == 0 && 
-                 !last_bill.is_paid) {
-                 new_bill.overdue_amount += (last_bill.total_amount_due - last_bill.amount_paid);
-             }
-         }
-         fclose(bill_file);
-     }
-     
-     // Total Amount Due
-     new_bill.total_amount_due = new_bill.total_current_charges - new_bill.early_payment_amount + new_bill.overdue_amount;
-     
-     new_bill.amount_paid = 0.0;
-     new_bill.is_paid = false;
-     
-     // Save bill to file
-     file = fopen(FILE_BILLS, "ab");
-     if (file != NULL) {
-         fwrite(&new_bill, sizeof(Bill), 1, file);
-         fclose(file);
-         
-         // Update premises in file
-         file = fopen(FILE_PREMISES, "wb");
-         if (file != NULL) {
-             for (int i = 0; i < premises_count; i++) {
-                 fwrite(&premises[i], sizeof(Premises), 1, file);
-             }
-             fclose(file);
-             
-             printf("\nBill generated successfully!\n");
-             printf("Bill ID: %s\n", new_bill.bill_id);
-             printf("Customer: %s %s\n", customers[customer_index].first_name, customers[customer_index].last_name);
-             printf("Consumption: %d litres\n", total_consumption);
-             printf("Total Amount Due: $%.2f\n", new_bill.total_amount_due);
-             
-             if (new_bill.is_early_payment_eligible) {
-                 printf("Early Payment Discount: $%.2f (if paid before due date)\n", new_bill.early_payment_amount);
-             }
-         } else {
-             printf("Error: Could not update premises data.\n");
-         }
-     } else {
-         printf("Error: Could not save bill data.\n");
-     }
-     
-     pauseScreen();
- }
+  void generateBill() {
+    clearScreen();
+    char customer_input[100];
+    char premises_input[100];
+    bool customer_found = false;
+    bool premises_found = false;
+    int customer_index = -1;
+    int premises_index = -1;
+    int unpaid_bills_count = 0;
+    
+    printf("\n=== Generate Bill ===\n");
+    printf("Enter Customer Number: ");
+    fgets(customer_input, sizeof(customer_input), stdin);
+    customer_input[strcspn(customer_input, "\n")] = '\0';
+    
+    // Validate customer number
+    if (strlen(customer_input) != 7) {
+        printf("Error: Customer number must be 7 digits.\n");
+        pauseScreen();
+        return;
+    }
+    
+    // Check customer number contains only digits
+    for (int i = 0; i < 7; i++) {
+        if (!isdigit(customer_input[i])) {
+            printf("Error: Customer number must contain only digits.\n");
+            pauseScreen();
+            return;
+        }
+    }
+    
+    // Find customer in array
+    for (int i = 0; i < customer_count; i++) {
+        if (strcmp(customers[i].customer_number, customer_input) == 0 && customers[i].is_active) {
+            customer_found = true;
+            customer_index = i;
+            break;
+        }
+    }
+    
+    if (!customer_found) {
+        printf("Customer not found or is archived.\n");
+        pauseScreen();
+        return;
+    }
+    
+    printf("Enter Premises Number: ");
+    fgets(premises_input, sizeof(premises_input), stdin);
+    premises_input[strcspn(premises_input, "\n")] = '\0';
+    
+    // Validate premises number
+    if (strlen(premises_input) != 7) {
+        printf("Error: Premises number must be 7 digits.\n");
+        pauseScreen();
+        return;
+    }
+    
+    // Check premises number contains only digits
+    for (int i = 0; i < 7; i++) {
+        if (!isdigit(premises_input[i])) {
+            printf("Error: Premises number must contain only digits.\n");
+            pauseScreen();
+            return;
+        }
+    }
+    
+    // Find premises in array
+    for (int i = 0; i < premises_count; i++) {
+        if (strcmp(premises[i].premises_number, premises_input) == 0 && 
+            strcmp(premises[i].customer_number, customer_input) == 0 && 
+            premises[i].is_active) {
+            premises_found = true;
+            premises_index = i;
+            break;
+        }
+    }
+    
+    if (!premises_found) {
+        printf("Premises not found, not associated with this customer, or is inactive.\n");
+        pauseScreen();
+        return;
+    }
+    
+    // Check for two consecutive unpaid bills
+    FILE *file = fopen(FILE_BILLS, "rb");
+    if (file != NULL) {
+        Bill bill;
+        while (fread(&bill, sizeof(Bill), 1, file) == 1) {
+            if (strcmp(bill.customer_number, customer_input) == 0 && 
+                strcmp(bill.premises_number, premises_input) == 0 && 
+                !bill.is_paid) {
+                unpaid_bills_count++;
+            }
+        }
+        fclose(file);
+    }
+    
+    if (unpaid_bills_count >= 2) {
+        printf("Cannot generate bill: Customer has two or more unpaid bills.\n");
+        pauseScreen();
+        return;
+    }
+    
+    // Generate bill
+    Bill new_bill;
+    int total_consumption = 0;
+    int daily_usage_limit = getDailyUsageLimit(customers[customer_index].income_class);
+    
+    // Generate 30 days of consumption
+    for (int i = 0; i < 30; i++) {
+        total_consumption += generateRandomNumber(0, daily_usage_limit);
+    }
+    
+    // Update premises readings
+    premises[premises_index].previous_reading = premises[premises_index].current_reading;
+    premises[premises_index].current_reading = premises[premises_index].previous_reading + total_consumption;
+    
+    // Generate bill ID
+    generateID(new_bill.bill_id, "BILL");
+    
+    // Set bill details
+    strcpy(new_bill.customer_number, customer_input);
+    strcpy(new_bill.premises_number, premises_input);
+    
+    // Get current date for bill date
+    getCurrentDate(new_bill.bill_date);
+    
+    // Calculate due date (30 days from bill date)
+    // For simplicity, we'll just add "30 days" to the bill date
+    strcpy(new_bill.due_date, new_bill.bill_date);
+    new_bill.due_date[0] = new_bill.due_date[0] + 1; // Simple increment to represent 30 days later
+    
+    // Set month number (1-12)
+    FILE *bill_file = fopen(FILE_BILLS, "rb");
+    if (bill_file != NULL) {
+        Bill last_bill;
+        int last_month = 0;
+        
+        while (fread(&last_bill, sizeof(Bill), 1, bill_file) == 1) {
+            if (strcmp(last_bill.customer_number, customer_input) == 0 && 
+                strcmp(last_bill.premises_number, premises_input) == 0) {
+                if (last_bill.month_number > last_month) {
+                    last_month = last_bill.month_number;
+                }
+            }
+        }
+        fclose(bill_file);
+        
+        if (last_month == 12) {
+            new_bill.month_number = 1;
+        } else {
+            new_bill.month_number = last_month + 1;
+        }
+    } else {
+        new_bill.month_number = 1; // First bill
+    }
+    
+    new_bill.year = 2025; // Current year
+    new_bill.previous_reading = premises[premises_index].previous_reading;
+    new_bill.current_reading = premises[premises_index].current_reading;
+    new_bill.consumption = total_consumption;
+    
+    // Calculate charges
+    new_bill.water_charge = calculateWaterCharge(total_consumption);
+    new_bill.sewerage_charge = calculateSewerageCharge(total_consumption);
+    new_bill.service_charge = calculateServiceCharge(premises[premises_index].meter_size);
+    
+    // PAM (Price Adjustment Mechanism): 1.21% of (Water + Sewerage + Service)
+    new_bill.pam = 0.0121 * (new_bill.water_charge + new_bill.sewerage_charge + new_bill.service_charge);
+    
+    // X-Factor: -5% of (Water + Sewerage + Service)
+    new_bill.x_factor = -0.05 * (new_bill.water_charge + new_bill.sewerage_charge + new_bill.service_charge);
+    
+    // K-Factor: 20% of (Water + Sewerage + Service + PAM) - X-Factor
+    new_bill.k_factor = 0.2 * (new_bill.water_charge + new_bill.sewerage_charge + new_bill.service_charge + new_bill.pam) - new_bill.x_factor;
+    
+    // Total Current Charges
+    new_bill.total_current_charges = new_bill.water_charge + new_bill.sewerage_charge + new_bill.service_charge - new_bill.x_factor + new_bill.k_factor;
+    
+    // Determine early payment eligibility (random)
+    new_bill.is_early_payment_eligible = (generateRandomNumber(0, 1) == 1);
+    
+    if (new_bill.is_early_payment_eligible) {
+        // Early payment discount (random between $50 and $250)
+        new_bill.early_payment_amount = generateRandomNumber(50, 250);
+    } else {
+        new_bill.early_payment_amount = 0.0;
+    }
+    
+    // Check for overdue amount
+    new_bill.overdue_amount = 0.0;
+    bill_file = fopen(FILE_BILLS, "rb");
+    if (bill_file != NULL) {
+        Bill last_bill;
+        
+        while (fread(&last_bill, sizeof(Bill), 1, bill_file) == 1) {
+            if (strcmp(last_bill.customer_number, customer_input) == 0 && 
+                strcmp(last_bill.premises_number, premises_input) == 0 && 
+                !last_bill.is_paid) {
+                new_bill.overdue_amount += (last_bill.total_amount_due - last_bill.amount_paid);
+            }
+        }
+        fclose(bill_file);
+    }
+    
+    // Total Amount Due
+    new_bill.total_amount_due = new_bill.total_current_charges - new_bill.early_payment_amount + new_bill.overdue_amount;
+    
+    new_bill.amount_paid = 0.0;
+    new_bill.is_paid = false;
+    
+    // Save bill to file
+    file = fopen(FILE_BILLS, "ab");
+    if (file != NULL) {
+        fwrite(&new_bill, sizeof(Bill), 1, file);
+        fclose(file);
+        
+        // Update premises in file
+        file = fopen(FILE_PREMISES, "wb");
+        if (file != NULL) {
+            for (int i = 0; i < premises_count; i++) {
+                fwrite(&premises[i], sizeof(Premises), 1, file);
+            }
+            fclose(file);
+            
+            printf("\nBill generated successfully!\n");
+            printf("Bill ID: %s\n", new_bill.bill_id);
+            printf("Customer: %s %s\n", customers[customer_index].first_name, customers[customer_index].last_name);
+            printf("Consumption: %d litres\n", total_consumption);
+            printf("Total Amount Due: $%.2f\n", new_bill.total_amount_due);
+            
+            if (new_bill.is_early_payment_eligible) {
+                printf("Early Payment Discount: $%.2f (if paid before due date)\n", new_bill.early_payment_amount);
+            }
+        } else {
+            printf("Error: Could not update premises data.\n");
+        }
+    } else {
+        printf("Error: Could not save bill data.\n");
+    }
+    
+    pauseScreen();
+}
  
  // View reports (Agent function)
  void viewReports() {
